@@ -17,11 +17,11 @@ use Illuminate\Http\Request;
 //     return $request->user();
 // });
 
-Route::group(['previx' => 'v1'], function() {
-    Route::resource('meeting', 'MeetingController', [
+Route::group(['prefix' => 'v1'], function() {
+    Route::resource('/meeting', 'MeetingController', [
         'except' => ['create', 'edit']
     ]);
-    Route::resource('meeting/registration', 'RegisterController', [
+    Route::resource('/meeting/registration', 'RegisterController', [
         'only' => ['store', 'destroy']
     ]);
     Route::post('/user/register',[

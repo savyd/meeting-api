@@ -40,11 +40,11 @@ class MeetingController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'time' => 'required',
             'title' => 'required',
             'user_id' => 'required',
-            'description' => 'required'
+            'description' => 'required',
         ]);
 
         $time = $request->input('time');
@@ -58,7 +58,7 @@ class MeetingController extends Controller
             'description' => $description
         ]);
 
-        if($meeting->save()){
+        if ($meeting->save()) {
             $meeting->users()->attach($user_id);
             $meeting->view_meeting = [
                 'href' => 'api/v1/meeting/'. $meeting->id,
@@ -69,21 +69,13 @@ class MeetingController extends Controller
                 'meeting' => $meeting
             ];
             return response()->json($message, 201);
+        } else {
+            $message = [
+                'msg' => 'Error during Create'
+            ];
+            return response()->json($meeting, 400);
         }
 
-        $message = [
-            'msg' => 'Error during Create'
-        ];
-
-        return response()->json($meeting, 400);
-
-
-        $response = [
-            'msg' => 'Meeting Created',
-            'data' => $meeting
-        ];
-
-        return response()->json($response, 201);
     }
 
     /**
@@ -94,7 +86,18 @@ class MeetingController extends Controller
      */
     public function show($id)
     {
-        return 'ini berhasil';
+        $meeting = Meeting::with('users')->where('id', $id)->firstOrFail();
+        $meeting->view_meeting = [
+            'href' => 'api/v1/meeting',
+            'method' => 'GET',
+        ];
+
+        $response = [
+            'msg' => 'Meeting Information',
+            'meeting' => $meeting,
+        ];
+
+        return response()->json($response, 200);
     }
 
 
@@ -107,7 +110,45 @@ class MeetingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        return 'ini berhasil';
+        $request->validate([
+            'time' => 'required',
+            'title' => 'required',
+            'user_id' => 'required',
+            'description' => 'required',
+        ]);
+
+        $time = $request->input('time');
+        $title = $request->input('title');
+        $user_id = $request->input('user_id');
+        $description =$request->input('description');
+
+        $meeting = Meeting::with('users')->findOrFail($id);
+
+        if (!$meeting->users()->where('user_id', $user_id)->first()) {
+            return response()->json(['msg' => 'user not registered for meeting, update not succesful'], 401);
+        }
+        /** ELSE */
+        $meeting->time = $time;
+        $meeting->title = $title;
+        $meeting->description = $description;
+
+        if (!$meeting->update()) {
+            return response()->json([
+                'msg' => 'Error during update',
+            ], 404);
+        }
+        /** ELSE */
+        $meeting->view_meeting = [
+            'href' => 'api/v1/meeting/' . $meeting->id,
+            'method' => 'GET',
+        ];
+
+        $response = [
+            'msg' => 'Meeting Updated',
+            'meeting' => $meeting,
+        ];
+
+        return response()->json($response, 200);
     }
 
     /**
@@ -118,6 +159,29 @@ class MeetingController extends Controller
      */
     public function destroy($id)
     {
-        return 'ini berhasil';
+        $meeting = Meeting::findOrFail($id);
+        $users = $meeting->users;
+        $meeting->users()->detach();
+
+        if (!$meeting->delete()) {
+            foreach ($users as $user) {
+                $meeting->users()->attach($user);
+            }
+
+            return response()->json([
+                'msg' => 'Deletion Failed',
+            ], 404);
+        }
+        /** ELSE */
+        $response = [
+            'msg' => 'Meeting delete',
+            'create' => [
+                'href' => 'api/v1/meeting',
+                'method' => 'POST',
+                'params' => 'title, description, time'
+            ]
+        ];
+
+        return response()->json($response, 200);
     }
 }

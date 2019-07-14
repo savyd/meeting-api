@@ -9,7 +9,7 @@ class AuthController extends Controller
 {
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required',
             'email' => 'required | email',
             'password' => 'required | min:5'
@@ -36,13 +36,13 @@ class AuthController extends Controller
                 'user' => $user
             ];
             return response()->json($response, 201);
+        } else {
+            $response = [
+                'msg' => 'An error occurred'
+            ];
+            return response()->json($response, 404);
         }
 
-        $response = [
-            'msg' => 'An error occurred'
-        ];
-
-        return response()->json($response, 404);
     }
 
     public function signin(Request $request)
