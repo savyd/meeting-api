@@ -3,29 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\User;
+use App\Meeting;
 
 class RegisterController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return 'ini berhasil';
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return 'ini berhasil';
-    }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -34,41 +16,44 @@ class RegisterController extends Controller
      */
     public function store(Request $request)
     {
-        return 'ini berhasil';
-    }
+        $request->validate([
+            'meeting_id' => 'required',
+            'user_id' => 'required',
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        return 'ini berhasil';
-    }
+        $user_id = $request->input('user_id');
+        $meeting_id = $request->input('meeting_id');
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        return 'ini berhasil';
-    }
+        $user = User::findOrFail($user_id);
+        $meeting = Meeting::findOrFail($meeting_id);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        return 'ini berhasil';
+        $message = [
+            'msg' => 'User is alredy register for meeting',
+            'user' => $user,
+            'meeting' => $meeting,
+            'unregister' => [
+                'href' => 'api/v1/meeting/registration/'. $meeting->id,
+                'method' => 'DELETE',
+            ],
+        ];
+
+        if ($meeting->users()->where('user_id', $user_id)->first()) {
+            return response()->json($message, 404);
+        }
+        /** ELSE */
+        $user->meetings()->attach($meeting);
+
+        $response = [
+            'msg' => 'User register for meeting',
+            'user' => $user,
+            'meeting' => $meeting,
+            'unregister' => [
+                'href' => 'api/v1/meeting/registration/'. $meeting->id,
+                'method' => 'DELETE',
+            ],
+        ];
+
+        return response()->json($response, 201);
     }
 
     /**
@@ -79,6 +64,20 @@ class RegisterController extends Controller
      */
     public function destroy($id)
     {
-        return 'ini berhasil';
+        $meeting = Meeting::findOrFail($id);
+        $meeting->users()->detach();
+
+        $response = [
+            'msg' => 'User unregister for meeting',
+            'user' => 'tdb',
+            'meeting' => $meeting,
+            'register' => [
+                'href' => 'api/v1/meeting/registration',
+                'method' => 'POST',
+                'params' => 'user_id, meeting_id',
+            ],
+        ];
+
+        return response()->json($response, 200);
     }
 }
