@@ -7,6 +7,7 @@ use App\Meeting;
 
 class MeetingController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *

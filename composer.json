@@ -13,6 +13,7 @@
         "fideloper/proxy": "^4.0",
         "laravel/framework": "5.8.*",
         "laravel/tinker": "^1.0",
+        "mongodb/mongodb": "^1.4",
         "nesbot/carbon": "2.17.0 as 1.34.0",
         "tymon/jwt-auth": "^0.5.12"
     },

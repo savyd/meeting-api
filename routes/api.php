@@ -17,17 +17,11 @@ use Illuminate\Http\Request;
 //     return $request->user();
 // });
 
-Route::group(['prefix' => 'v1'], function() {
-    Route::resource('/meeting', 'MeetingController', [
-        'except' => ['create', 'edit']
-    ]);
-    Route::resource('/meeting/registration', 'RegisterController', [
-        'only' => ['store', 'destroy']
-    ]);
-    Route::post('/user/register',[
-        'uses' => 'AuthController@store'
-    ]);
-    Route::post('/user/signin',[
-        'uses' => 'AuthController@signin'
-    ]);
+Route::prefix('v1')->group(function () {
+    Route::resource('/meeting', 'MeetingController')
+        ->except(['create', 'edit']);
+    Route::resource('/meeting/registration', 'RegisterController')
+        ->only(['store', 'destroy']);;
+    Route::post('/user/register', 'AuthController@store');
+    Route::post('/user/signin', 'AuthController@signin');
 });
